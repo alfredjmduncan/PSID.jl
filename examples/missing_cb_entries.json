@@ -1,0 +1,27 @@
+[
+    {
+      "name_user": "id",
+      "varID": "V3",
+      "unit": "family"
+    },
+    {
+      "name_user": "hours",
+      "varID": "V465",
+      "unit": "head"
+    },
+    {
+      "name_user": "incfamily",
+      "varID": "V81",
+      "unit": "family"
+    },
+    {
+      "name_user": "exp_consumption",
+      "varID": "ER77588",
+      "unit": "family"
+    },
+    {
+      "name_user": "exp_total",
+      "varID": "ER77587",
+      "unit": "family"
+    }
+  ]
