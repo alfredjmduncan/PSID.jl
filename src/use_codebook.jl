@@ -97,7 +97,7 @@ function process_varname!(name, var2ind_dict, df_vars, codebook_df, fastfind)
     # Check for missing xml codebook entries.
     # Construct new entries based on the specific variable reference in the user input json.
     for s in values(mynames)
-        if s in ∈ keys(fastfind)
+        if s in ∈ collect(keys(fastfind))
         else
             @warn "Could not find $s in xml codebook. Constructing output codebook record from $name"
             syear = parse(Int,names(dfvar)[coalesce.(collect(dfvar),"") .== s][1][2:end])
