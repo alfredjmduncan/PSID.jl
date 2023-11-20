@@ -63,7 +63,7 @@ codebook_df: The codebook table
 fastfind: Dict mapping from variable IDs to their index in the codebook
 Processes a variable ID, finds all years thats match, and collects the labels
 """
-function process_varname_(name, var2ind_dict, df_vars, codebook_df, fastfind)
+function process_varname(name, var2ind_dict, df_vars, codebook_df, fastfind)
     ## Find the row in the crosswalk we can find this variable in
     myrow = var2ind_dict[name]
     ## Fetch all the names in that row
