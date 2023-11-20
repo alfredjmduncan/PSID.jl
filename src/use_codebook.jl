@@ -63,7 +63,7 @@ codebook_df: The codebook table
 fastfind: Dict mapping from variable IDs to their index in the codebook
 Processes a variable ID, finds all years thats match, and collects the labels
 """
-function process_varname(name, var2ind_dict, df_vars, codebook_df, fastfind)
+function process_varname_(name, var2ind_dict, df_vars, codebook_df, fastfind)
     ## Find the row in the crosswalk we can find this variable in
     myrow = var2ind_dict[name]
     ## Fetch all the names in that row
@@ -71,14 +71,51 @@ function process_varname(name, var2ind_dict, df_vars, codebook_df, fastfind)
     mynames = [ r for r in dfvar if r !== missing]
     ## Need to figure out the variable label expansion
     # Can I just take the union?
+    
     codevec = [fastfind[s] for s in values(mynames)]
     codedict = [codebook_df.codedict[i] for i in codevec]
+    
     un = Dict{String, String}()
     merge!(checkerror, un, codedict...)
     map!(trimlabel, values(un))
     varnames = Dict{String, Tuple{String, String, Vector{Float64}}}(
     codebook_df.YEAR[i] => (codebook_df.NAME[i], codebook_df.LABEL[i],
      codebook_df.excluding[i]) for i in codevec)
+
+    varnames, iscontinuous(keys(un)), un
+end
+
+function process_varname!(name, var2ind_dict, df_vars, codebook_df, fastfind)
+    ## Find the row in the crosswalk we can find this variable in
+    myrow = var2ind_dict[name]
+    ## Fetch all the names in that row
+    dfvar = df_vars[myrow, :]
+    mynames = [ r for r in dfvar if r !== missing]
+    ## Need to figure out the variable label expansion
+    # Can I just take the union?
+    
+    # Check for missing xml codebook entries.
+    # Construct new entries based on the specific variable reference in the user input json.
+    for s in values(mynames)
+        if s in ∈ keys(fastfind)
+        else
+            @warn "Could not find $s in xml codebook. Constructing output codebook record from $name"
+            syear = parse(Int,names(dfvar)[coalesce.(collect(dfvar),"") .== s][1][2:end])
+            push!(codebook_df,[s,syear, codebook_df[fastfind[name],3:end]...])
+            push!(fastfind, s => length(codebook_df.NAME))
+        end
+    end
+
+    codevec = [fastfind[s] for s in values(mynames)]
+    codedict = [codebook_df.codedict[i] for i in codevec]
+    
+    un = Dict{String, String}()
+    merge!(checkerror, un, codedict...)
+    map!(trimlabel, values(un))
+    varnames = Dict{String, Tuple{String, String, Vector{Float64}}}(
+    codebook_df.YEAR[i] => (codebook_df.NAME[i], codebook_df.LABEL[i],
+    codebook_df.excluding[i]) for i in codevec)
+
     varnames, iscontinuous(keys(un)), un
 end
 
@@ -148,7 +185,7 @@ function process_input(inputjson)
 
     ### Do the final processing of the input JSON, produce the output
     read_input = JSON3.read(read(inputjson, String), Vector{VarInput})
-    process_varinput(v::VarInput) = VarInfo5(v.name_user, v.unit, process_varname(v.varID, var2ind_dict, df_vars, codebook_df, fastfind)...)
+    process_varinput(v::VarInput) = VarInfo5(v.name_user, v.unit, process_varname!(v.varID, var2ind_dict, df_vars, codebook_df, fastfind)...)
     procvar = process_varinput.(read_input)
     write("output/user_output.json", JSON3.write(procvar))
 
